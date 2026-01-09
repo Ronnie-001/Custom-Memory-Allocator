@@ -7,8 +7,6 @@ struct memBlock
     // include metadata.
     void* ptr;
     memBlock* next;
-
-    bool flag;
     int size;
 };
 

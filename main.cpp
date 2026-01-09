@@ -5,7 +5,10 @@
 int main()
 {
     char* rawMemory = new char[24];
-    cAlloc allocator(rawMemory);
+    cAlloc* allocator = new cAlloc(rawMemory, 24);
+    
+    delete allocator;
+    delete[] rawMemory;
 
     return 0;
 }
