@@ -21,7 +21,7 @@ public:
     : m_memPool(memPool),
       m_size(size)
     {
-        m_header = new memBlock();
+        m_header = new memBlock;
         buildFreeList(m_header, m_memPool, m_size);
     }
 
@@ -50,7 +50,7 @@ private:
 
                 temp = head; 
             } else {
-                memBlock* newBlock = new memBlock();                
+                memBlock* newBlock = new memBlock;                
                 // Set metadata about the block.
                 newBlock->ptr = static_cast<void*>(&memPool[i]);
                 newBlock->next = nullptr;  
@@ -68,10 +68,30 @@ private:
     
     // Function used to remove block from LL once all
     // the memory from that block has been allocated.
-    void removeMemoryBlock(memBlock& block) {}
+    void removeMemoryBlock(memBlock* block)
+    {
+        // take the next block of memory
+        memBlock* nextMemBlock = block->prev;
+        memBlock* prevMemBlock = block->prev;
+        
+        prevMemBlock->next = nextMemBlock;
+        
+        // Deallocate memory accociated with the block.
+        delete block;
+    }
 
     // Mainly used in the case coalasing of memory has to happen.
-    void addMemoryBlock(std::size_t size) {}
+    void addMemoryBlock(std::size_t size, memBlock* prev) 
+    {
+        memBlock* newBlock = new memBlock;
+
+        // Cast the pointer to char* so we can be more specific 
+        // About the amount of memory we want to add.
+        char* charPtr = static_cast<char*>(prev->ptr);
+        charPtr += size;
+
+        newBlock->size = size;
+    }
 };
 
 #endif // !CALLOC_H
