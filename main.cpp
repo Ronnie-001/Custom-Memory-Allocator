@@ -1,10 +1,14 @@
 #include "cAlloc.h"
 #include "memBlock.h"
+#include <filesystem>
 
 int main()
 {
-    char* rawMemory = new char[1000];
-    cAlloc* allocator = new cAlloc(rawMemory, sizeof(rawMemory));
+    char* rawMemory = new char[100];
+    cAlloc* allocator = new cAlloc(rawMemory, 100);
+    
+    int* ptr = static_cast<int*>(allocator->alloc(sizeof(int)));
+    *ptr = 42;
 
     delete allocator;
     delete[] rawMemory;

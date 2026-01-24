@@ -1,6 +1,7 @@
 #ifndef CALLOC_H
 #define CALLOC_H
 
+#include <cstddef>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -29,12 +30,12 @@ public:
     
     // destructor
     ~cAlloc() {}
-
+    
+    // Delete the copy constructor to avoid copies of the memory pool being cosntructed.
     cAlloc(const cAlloc& calloc) = delete;
 
     // TODO: Fix alloc() implementation to allocate one *contiguous* block of memory.
     // Function used to alloc
-    template<typename T> 
     void* alloc(std::size_t requestedMemory) 
     {
         memBlock* curr; 
@@ -46,15 +47,21 @@ public:
                 curr = curr->next;
                 continue;
             }
-
+            
             if (curr->size >= requestedMemory) {
-                T* ptr = static_cast<T*>(curr->ptr); 
-                // Allocate memory acording to the size of the DS passed in.
-                ptr += sizeof(T);
-                curr->isAllocated = true;
                 
+                if (curr->size > requestedMemory) {
+                    // Split the memory block.
+                    splitMemoryBlock(curr, requestedMemory);
+                    std::cout << '\n';
+                    std::cout << "new free list:" << '\n';
+                    printFreeList();
+                }
+                           
+                // Return the pointer to the block of memory.
                 return curr->ptr;
             }
+
             curr = curr->next;
         }
             
@@ -75,21 +82,19 @@ private:
             if (i == 0) {
                 head->ptr = static_cast<void*>(memPool);
                 head->size = 20;
-                head->isAllocated = false;
 
                 head->prev = nullptr;
                 head->next = nullptr;
                 
+                // For debug purposes.
                 std::cout << "HEAD: " << head->ptr << '\n';
-
                 temp = head; 
+                
             } else {
                 memBlock* newBlock = new memBlock;                
                 // Set metadata about the block.
                 newBlock->ptr = static_cast<void*>(&memPool[i]);
                 newBlock->size = 20; // represents 20 bytes
-                newBlock->isAllocated = false;
-
 
                 newBlock->next = nullptr;  
                 newBlock->prev = temp; 
@@ -97,14 +102,37 @@ private:
                 // Move forward.
                 temp->next = newBlock;
                 temp = newBlock;
-
-                std::cout << "[" << &newBlock << "]" << ":" << "[" << newBlock->prev << "]" << "->";
+                
+                // For debug purposes.
+                std::cout << "[" << newBlock->ptr << "]" << ":" << newBlock->size << ":" << "[" << newBlock->prev->ptr << "]" << "->";
             }
         }
     }
-    
-    // Function used to remove block from LL once all
-    // the memory from that block has been allocated.
+
+    /* Function used for splitting memory blocks if the request amount of memory 
+     * is less than the size of the memory block allocated.
+     */
+    void splitMemoryBlock(memBlock* block, std::size_t newBlockSize)
+    {
+        block->size = newBlockSize;
+        block->isAllocated = true;
+
+        std::size_t newSize = (block->size) - newBlockSize;
+        memBlock* newBlk = createMemoryBlock(newSize, block, block->next);
+
+        void* blkPtr = block->ptr;           
+
+        // Cast to char* so the pointer can be incremented by x bytes.
+        char* charPtr = static_cast<char*>(blkPtr);
+        charPtr += newBlockSize;
+
+        newBlk->ptr = static_cast<void*>(charPtr);
+    } 
+
+    /* 
+     * Function used to remove block from LL once all
+     the memory from that block has been allocated.
+    */
     void removeMemoryBlock(memBlock* block)
     {
         // take the next block of memory
@@ -116,21 +144,39 @@ private:
         // Deallocate memory accociated with the block.
         delete block;
     }
-
-    // Mainly used in the case coalasing of memory has to happen.
-    void addMemoryBlock(std::size_t size, memBlock* prev) 
+    
+    /* 
+     * Function used to create a new memBlock in the free list in the 
+     * case where the total amount of requested memory is less than thes size of 
+     * the memory block. 
+     *
+     * Initalises the size, prev and next member variables of the struct.
+    */
+    memBlock* createMemoryBlock(std::size_t size, memBlock* prev, memBlock* next) 
     {
         memBlock* newBlock = new memBlock;
-
-        // Cast the pointer to char* so we can be more specific 
-        // About the amount of memory we want to add.
-        char* charPtr = static_cast<char*>(prev->ptr);
-        charPtr += size;
-
+            
         newBlock->size = size;
+        newBlock->prev = prev;
+        newBlock->next = next;
+
+        return newBlock;
+    }
+
+    void printFreeList() 
+    {
+        memBlock* curr = m_header;
+
+        while (curr != nullptr) {
+            if (curr->isAllocated) {
+                std::cout << "(A)" << "[" << curr->ptr << "]" << ":" << curr->size << ":" << "[" << curr->ptr << "]" << "->"; 
+            } else  {
+                std::cout << "[" << curr->ptr << "]" << ":" << curr->size  << ":" << "[" << curr->prev->ptr << "]" << "->"; 
+            }
+            curr = curr->next;
+        }
     }
 };
-
 
 #endif // !CALLOC_H
 #define CALLOC_H

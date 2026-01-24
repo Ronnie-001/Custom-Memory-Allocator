@@ -7,8 +7,9 @@ struct memBlock
 {
     // include metadata.
     void* ptr;
+    // "size" here represents the number of BYTES a memory block is.
     std::size_t size;
-    bool isAllocated;    
+    bool isAllocated = false;    
 
     memBlock* next;
     memBlock* prev;
