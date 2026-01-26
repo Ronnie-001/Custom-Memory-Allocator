@@ -114,13 +114,11 @@ private:
      */
     void splitMemoryBlock(memBlock* block, std::size_t newBlockSize)
     {
+        std::size_t newSize = (block->size) - newBlockSize;
+
         block->size = newBlockSize;
         block->isAllocated = true;
 
-        std::size_t newSize = (block->size) - newBlockSize;
-
-        std::cout << newSize << '\n';
-        
         memBlock* newBlk = createMemoryBlock(newSize, block, block->next);
 
         void* blkPtr = block->ptr;           
