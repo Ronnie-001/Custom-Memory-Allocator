@@ -75,6 +75,9 @@ public:
             if (ptr == curr->ptr) {
                 // Mark the avaliable block as free to use.
                 curr->isAllocated = false;   
+                
+                // coalesce adjacent memory blocks
+                coalesceMemoryBlocks(curr); 
                 break; 
             }
             curr = curr->next;
@@ -120,6 +123,38 @@ private:
                 std::cout << "[" << newBlock->ptr << "]" << ":" << newBlock->size << ":" << "[" << newBlock->prev->ptr << "]" << "->";
             }
         }
+    }
+    
+    /**
+     * Function used for fusing free memory block that are close together,
+     * In order to solve the issue of memory fragmentation.
+     */
+    void coalesceMemoryBlocks(memBlock* block) 
+    {
+        // take the previous and next memory blocks
+        memBlock* prevBlk = block->prev;
+        memBlock* nextBlk = block->next;
+            
+        if (prevBlk != nullptr && !prevBlk->isAllocated) {
+            // Set the new pointer
+            block->ptr = prevBlk->ptr;
+
+            block->prev = prevBlk->prev;
+            block->size += prevBlk->size;
+
+            prevBlk->next = block;
+        }
+
+        if (nextBlk != nullptr && !nextBlk->isAllocated) {
+            block->next = nextBlk->next;
+            block->size += nextBlk->size;
+
+            nextBlk->prev = block;
+        }
+        
+        // Delete the memory blocks
+        delete prevBlk;
+        delete nextBlk;
     }
 
     /* Function used for splitting memory blocks if the request amount of memory 
