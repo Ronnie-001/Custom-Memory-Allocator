@@ -1,5 +1,5 @@
 # Memory-Allocator
-A manual memory management implementation built from scratch in C++. This project replaces standard new/delete calls with a custom pool allocator using a Doubly Linked Free List with First-Fit allocation strategy.
+A manual memory management implementation built from scratch in C++. This project replaces standard `new` & `delete` calls with a custom pool allocator using a Doubly Linked Free List with First-Fit allocation strategy.
 
 ## Features
 
